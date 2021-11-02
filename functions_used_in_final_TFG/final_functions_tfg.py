@@ -1,10 +1,10 @@
-#Script writen by Arturo Sirvent Fresneda (2020-2021) as part of its final physics bachelor thesis in the University of Granda (UGR).   
-#All the code if available free in GitHub. The use of it, is only restricted by a proper authorship acknowledgment and citation.  
+#Script writen entirely by Arturo Sirvent Fresneda (2020-2021) as part of its final physics bachelor thesis in the University of Granada (UGR).   
+#All the code is available free in GitHub. Its use is only conditioned by a proper authorship acknowledgment and citation.  
 #https://github.com/ArturoSirvent/CTA-data-analisis-library
 
 #FUNCTIONS FOR CTA DATA WRANGLING ANALISIS AND MODEL CREATION/TRAINING/TESTING.
 
-#The functions are separated into block according to its purpose.
+#The functions are separated into blocks according to its purpose.
 
 #comments for further improvement are marked as comments but with double questions --> #??
 #in that way it is easier to find the spots where I find the code could be improved.
@@ -120,6 +120,7 @@ def descomprimir_gunzip(base_dir,final_dir=None,elements=None,folders=True):
 #the simulation paramets (not only the energy but it was our case).
 #To check that all the .dt have a corresponding .txt, we hace the following function:
 
+#?? incompleto y no revisado
 def dif_dt_txt(dir,faltantes=False,max_val=None,ending=(".dt",".txt")):
     #esta funcion comprueba si hay los mismo archivos para txt y dt y cuales faltan y hasta que run llegan
     #devuelve un diccionario con los telescopios y las runs de cada uno
