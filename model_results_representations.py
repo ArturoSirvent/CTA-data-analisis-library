@@ -1,0 +1,2 @@
+#once we train the model, we would like to keep track of the results, store them as json in case we try many architectures
+#and access it later for visualize accuracy and other parameters. This functions aim to it.
