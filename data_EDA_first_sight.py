@@ -180,7 +180,7 @@ def analysis_npy_files_conjunt(output_dir,npy_dir=None,npy_list=None):
     plt.imshow(counts_matrix_aux,aspect="auto")
     plt.title(f"counts_{perc[j]}",fontsize=14)
   plt.tight_layout()
-  plt.savefig(f"{output_dir}.png")
+  plt.savefig(output_dir)
   plt.close()
 
 

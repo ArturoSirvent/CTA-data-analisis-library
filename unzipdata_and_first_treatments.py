@@ -299,6 +299,9 @@ def multiple_dt_2_npy(lista_archivos,npy_dir,limit_size=0.35,save_events_id=Fals
     #npy_dir es el directorio para guardar todosl os .npy juntos, sin fantasia ni carpetas
     #folders=True es que lo .dt estan en carpetas
     #limit_size limite de peso en gigas de los .npy, por defecto esat en 350 Mb ó 0.35 Gigas
+
+    #sin_norm in the name refers to -> without normalization
+
     limit_size=limit_size*1e9 # pasamos de gigas a bytes 
     npy_dir_aux=npy_dir
     num_pix_x=0
