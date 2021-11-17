@@ -42,7 +42,7 @@ import pandas as pd
 #inside iron.tar we had: iron_tel_1_run_1.dt.gz, iron_tel_1_run_1.txt, iron_tel_1_run_2.dt.gz, iron_tel_1_run_2.txt, etc.
 
 
-def extract_single_tar(dir_in,dir_out,final_folder=True):
+def extract_single_tar(dir_in,dir_out,new_folder=True):
     #this function receives de directory of a .tar file (dir_in) an unzips it into into 
     #dir_out in a folder (if final_folder=True) with the same name.
     if tarfile.is_tarfile(dir_in)==False:
@@ -50,23 +50,27 @@ def extract_single_tar(dir_in,dir_out,final_folder=True):
         return
     else:
         with tarfile.open(dir_in) as aux_tar:
-            if final_folder:
+            if new_folder:
                 nombre_aux=os.path.basename(dir_in).replace(".tar","")
                 dir_out=f"{dir_out}/{nombre_aux}"
-                os.mkdir(dir_out)
+                if not (os.path.isdir(dir_out)):
+                    os.mkdir(dir_out)
             else:
                 #if not dir_out stays the same
                 pass
             aux_tar.extractall(dir_out)
 
 
-
 def extract_multiple_tar(dir_folder_with_tars,dir_final_folder):
     #this is just a function that implements extract_single_tar to a folder with all the elements compressed as .tar
+    #?? it would be great to allow this function to receive a list of tars instead of a dir with them, for the case we dont
+    #only have .tar files in it
     list_tar=os.listdir(dir_folder_with_tars)
     for i in list_tar:
-        #?? it could be good to add some robust "error" management for not .tar elements
-        extract_single_tar(f"{dir_folder_with_tars}/{i}",dir_final_folder,final_folder=True)
+        name_aux=f"{dir_folder_with_tars}/{i}"
+        if tarfile.is_tarfile(name_aux):
+            #?? it could be good to add some robust "error" management for not .tar elements
+            extract_single_tar(name_aux,dir_final_folder,new_folder=True)
 
 
 #Once we hace the folders with the .txt and .dt.gz , we need to unzip the .gz
@@ -84,6 +88,7 @@ def unzip_gunzip(base_dir,final_dir=None,elements=None,folders=True):
     #elementos son los [gamma,electron,silicium...]
     #folders true nos indica que hay carpetas contenedoras para cada elemento. I false, estan todos los datos
     #en el ground directory.
+    #??in case of folders=False it would unzip al the elements in the same folder, but this function is not needed by now
     if folders:
         #if elements are not specified, then it will take the name of the folders as element names
         if elements is None:
@@ -220,74 +225,13 @@ def dif_dt_txt(dir,faltantes=False,max_val=None,ending=(".dt",".txt")):
 
 
 
-#??this is not really necesary, the multiple works just fine I think
-def simple_load_dt_2_npy(file,verbose=False,save=False,save_events_id=False,npy_dir_aux=None,truth_sim=True):
-    num_pix_x=0
-    num_pix_y=0
-    verbose_list=[]
-    dt_list=[]  
-    nombre_archivo=re.findall("([a-zA-Z]*_tel_[0-9]*_run_\d\d).dt",file)[0]
-    aux_df=pd.read_csv(file,sep='  ',names=["1","2","3","4","5","6"],engine="python")
-    #ahora la procesamos y la guardamos en un npy
-    if truth_sim:
-        value_auf=aux_df.loc[aux_df.loc[:,"6"]==1][['1','3','4','5']].copy()
-    else:
-        value_auf=aux_df[['1','3','4','5']].copy()
 
-    del aux_df
-    #tenemos que agupar los valores 
-    value_auf.loc[value_auf["5"]<0,"5"]=0
-    #max_aux=np.amax(value_auf["5"])
-    #value_auf["5"]=value_auf["5"]/max_aux
-    x_minimo=min(value_auf['3'])
-    y_minimo=min(value_auf['4'])
-    events=value_auf["1"].unique()
-    num_pix_x_aux=value_auf["3"].unique().size
-    num_pix_y_aux=value_auf["4"].unique().size
-    if (num_pix_x != num_pix_x_aux) or (num_pix_y != num_pix_y_aux) : #tenemos que ser capacer de cambiar segun si observamos un telescopio u otro
-        num_pix_x=num_pix_x_aux
-        num_pix_y=num_pix_y_aux
-        if verbose:
-            #print(num_pix_x,num_pix_y)
-            verbose_list.append((num_pix_x,num_pix_y))
-
-        x_minimo=min(value_auf['3'])
-        y_minimo=min(value_auf['4'])
-        ##!!!esto puede dar problemas si resulta que para el primer evento faltan datos o algo...
-        auxiliar=value_auf.loc[value_auf["1"]==events[0]][["3","4","5"]].to_numpy()
-        #ahora tenemos los datos de los pixeles, podemos obtener lo que ocupa cada pixel
-        size_pix_x=np.ceil((max(auxiliar[:,0])-min(auxiliar[:,0]))/(np.unique(auxiliar[:,0]).size-1))
-        size_pix_y=np.ceil((max(auxiliar[:,1])-min(auxiliar[:,1]))/(np.unique(auxiliar[:,1]).size-1))
-        del auxiliar
-    if verbose:
-        #print(nombre_archivo,end="\n")
-        verbose_list.append(nombre_archivo)
-
-    value_auf.loc[:,'3']=value_auf['3'].apply(lambda x: round((x-x_minimo)/size_pix_x))
-    value_auf.loc[:,'4']=value_auf['4'].apply(lambda x: round((x-y_minimo)/size_pix_y))
-    #event_aux=value_auf["1"].unique()
-    for k in range(np.shape(events)[0]):
-        #cada evento tiene que ponerse en una imagen con sus valores
-        array_aux=value_auf.loc[value_auf["1"]==events[k]][["3","4","5"]]
-        #lo que vamos a hacer es poner los valores en una matriz creada de antemano y guardar esa matrix
-        #esos numeros vienen del maximo y el minimo valor para los pixeles, simplemente shifteamos todo
-        matrix_aux=np.zeros((num_pix_x,num_pix_y)) #eran 60-5= 55 y 131-38
-        matrix_aux[array_aux["3"].to_numpy(),array_aux["4"].to_numpy()]=array_aux["5"].to_numpy() 
-        dt_list.append(matrix_aux)
-
-    if save:
-        name_npy=f"{npy_dir_aux}/npy_sin_normal_{nombre_archivo}_{contador_nombre}.npy"
-        np.save(name_npy,np.array(dt_list))
-    if save_events_id:
-        name_npy_events=f"{npy_dir_aux}/id_eventos_npy_sin_normal_{nombre_archivo}.npy"
-        np.save(name_npy_events,np.array(events))
-    if verbose:
-        return verbose_list, np.array(dt_list)
-    else:
-        return np.array(dt_list)
+def lista_dt(dt_dir):
+    return sorted(glob.glob(f"{dt_dir}/*.dt"))
+def lista_txt(txt_dir):
+    return sorted(glob.glob(f"{txt_dir}/*.txt"))
 
 
-        
 #GUARDAR LOS ARCHIVOS COMO .NPY pero sin normalizar ni nada
  
 #tenemos que buscar una forma de que no guardemos archivos npy de mas de un giga (por poner un limite)
@@ -306,12 +250,24 @@ def multiple_dt_2_npy(lista_archivos,npy_dir,limit_size=0.35,save_events_id=Fals
     npy_dir_aux=npy_dir
     num_pix_x=0
     num_pix_y=0
+
+    #if lista_archivos is just a string and not a list, then we put it into a 1 length list
+    if (type(lista_archivos)!=list) & (type(lista_archivos)==str):
+        lista_archivos=[lista_archivos]
+
+    
+    #?? unnecesary change of name
     files_names=lista_archivos
     verbose_list=[]
     for j in range(len(files_names)):
+
+        #check that all the passed files exist
+        if not os.path.isfile(files_names[j]):
+            print(f"The file {files_names[j]} not found")
+            return
         contador_nombre=0
         dt_list=[]  
-        nombre_archivo=re.findall("([a-zA-Z]*_tel_[0-9]*_run_\d\d).dt",files_names[j])[0]
+        nombre_archivo=re.findall("([a-zA-Z]*_tel_[0-9]*_run_\d\d).dt$",files_names[j])[0]
         aux_df=pd.read_csv(files_names[j],sep='  ',names=["1","2","3","4","5","6"],engine="python")
         #ahora la procesamos y la guardamos en un npy
         value_auf=aux_df[['1','3','4','5']].copy()
@@ -358,7 +314,7 @@ def multiple_dt_2_npy(lista_archivos,npy_dir,limit_size=0.35,save_events_id=Fals
             if limit_size!=0:
                 if (np.array(dt_list).nbytes>limit_size):
                     if contador_nombre==0:
-                        name_npy=f"{npy_dir_auxf}/npy_sin_norm_{nombre_archivo}_{contador_nombre}.npy"
+                        name_npy=f"{npy_dir_aux}/npy_sin_norm_{nombre_archivo}_{contador_nombre}.npy"
                     np.save(name_npy,np.array(dt_list))
                     del dt_list
                     dt_list=[]
@@ -371,3 +327,67 @@ def multiple_dt_2_npy(lista_archivos,npy_dir,limit_size=0.35,save_events_id=Fals
             np.save(name_npy_events,np.array(events))
     if verbose:
         return verbose_list
+
+
+
+
+def dt_2_npy(base_dir,npy_base_dir=None,elements=None,save_names_list=True):
+    #this function recives a directory where we have some extract_element
+    #folders with the dt and txt files. Then the dt files are translated into 
+    #npy files into a new folder npy_element (inside the npy_base_dir)
+    #this function complets multiple_dt_2_npy with the task of giving the npy_file_names
+
+    #the argument save_names_list=True saves the name of the dt that have been correctly preccessed,
+    #because this function can take so long, and the proccess can be disturbed in half a file
+    #if save_names_list=False, then it will always redo everything
+
+
+    if elements is None:
+        elements=[i for i in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir,i)) ]
+        #we do want those we have extract_ at the beggining, 
+        elements=[i.replace("extract_","") for i in list(filter( re.compile("^extract_").match,elements))]
+
+    #we go into every extract_folder and then convert each .dt into a .npy file in npy_element
+    #which has been formated as required into images
+    #this folder is inside a npy_data main folder (npy_base_dir)
+    if npy_base_dir is None:
+        npy_base_dir=f"{base_dir}/npy_data"
+
+    if not os.path.isdir(npy_base_dir):
+        os.mkdir(npy_base_dir)
+    for i,j in enumerate(elements):
+        #load the required names
+        dt_fold_name=f"{base_dir}/extract_{j}"
+        names_files=lista_dt(dt_fold_name)
+        #create dest directory
+        
+        dest_folder_name=f"{npy_base_dir}/npy_{j}"
+
+        if save_names_list:
+            if not os.path.isdir(dest_folder_name):
+                os.mkdir(dest_folder_name)
+                files_done=[]
+            else:
+                try:
+                    files_done=list(np.load(f"{dest_folder_name}/files_done_{j}.npy"))
+                except:
+                    files_done=[]
+            #now we just give the function the list and the destination
+            for k in names_files:
+                #loop over the dt files for an element
+                #multiple_dt_2_npy can handdle a list of multiple files, but because save_names_list=True
+                #we will procced slowly one by one, passing each time a 1 length list with the file name
+                if k not in files_done:
+                    #if this file was not done then we proceed
+                    #the k must be replaced by a 1- element list no?
+                    multiple_dt_2_npy(k,dest_folder_name,save_events_id=True,verbose=False)
+                    #after doing it, we save the result
+                    files_done.append(k)
+                    np.save(f"{dest_folder_name}/files_done_{j}.npy",files_done)
+
+        else:
+            #if we dont want to save the progress
+            if not os.path.isdir(dest_folder_name):
+                os.mkdir(dest_folder_name)
+            #now we just give the function the list and the destination
+            multiple_dt_2_npy(names_files,dest_folder_name,save_events_id=True,verbose=False)
