@@ -54,8 +54,10 @@ https://colab.research.google.com/drive/1SP9-A2oODou3NgB8SpaVIFcGHuztXBiK?usp=sh
 	* create_lista_list_runs(num_events,init_events=None,random_select=False,elementos=None,max_runs=None) 
 	* load_dataset(base_dir,pre_name_folders="npy_",telescopios=None,list_runs=None,elementos=None,test_size=0.2,normalizacion_mal=False,same_quant=True) 
 * unzipdata_and_first_treatments.py
-	* extract_single_tar(dir_in,dir_out,final_folder=True) 
+	* extract_single_tar(dir_in,dir_out,new_folder=True) 
 	* extract_multiple_tar(dir_folder_with_tars,dir_final_folder) 
 	* unzip_gunzip(base_dir,final_dir=None,elements=None,folders=True) 
-	* simple_load_dt_2_npy(file,verbose=False,save=False,save_events_id=False,npy_dir_aux=None,truth_sim=True) 
+	* lista_dt(dt_dir) 
+	* lista_txt(txt_dir) 
 	* multiple_dt_2_npy(lista_archivos,npy_dir,limit_size=0.35,save_events_id=False,verbose=False) 
+	* dt_2_npy(base_dir,npy_base_dir=None,elements=None,save_names_list=True) 
