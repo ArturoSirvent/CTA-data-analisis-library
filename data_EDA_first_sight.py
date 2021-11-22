@@ -189,7 +189,6 @@ def analysis_npy_files_conjunt(output_dir,npy_dir=None,npy_list=None):
 
 
 
-
 #ahora voy a poner un intervalo para las energias y segun si un proceso ocurre en ese intervalo, lo incluyo en una lista
 #ese intervalo de energías lo obtenemos de hacer histogram con los datos de TODAS LAS RUNS.
 #VAMOS A JUNTAR RUNS PUES SUPONEMOS QUE EL ERROR NO ESTAN EN NINGUNA DE ELLAS EN CONCRETO

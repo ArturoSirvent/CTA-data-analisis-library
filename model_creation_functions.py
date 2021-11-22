@@ -134,7 +134,7 @@ def model_multi_tel(len_inputs=4,input_shapes=[(55,93,1)],classes=7,learning_rat
     return model
 
 
-
+#?? FILTROS IS NOT SPECIFIED IN THE ARGUMENTS!! SHOULD I?
 def model_multi_tel_encoder(len_inputs=4,input_shapes=[(55,93,1)],classes=3,last_dense=None,encoder=None,common_pre=True): #,learning_rate=1e-5
     inputs=[]
     outputs=[[] for i in range(len_inputs)]
@@ -157,6 +157,7 @@ def model_multi_tel_encoder(len_inputs=4,input_shapes=[(55,93,1)],classes=3,last
     else:
         for i in range(len_inputs):
             #SI QUEREMOS PONER AUTOENCODER TENEMOS QUE VER LA FOTMA DE COPIARLO
+            #?? FILTROS IS NOT SPECIFIED IN THE ARGUMENTS!! SHOULD I?
             pre_model=model_1_tel(input_shape=input_shapes[i],filtros=filtros,first_part=True,batch_init=batch)
             outputs[i]=pre_model(inputs[i]) 
     #nos falta la ultima parte
