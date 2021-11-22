@@ -10,10 +10,13 @@ An example of the functions use can be found in this Colab Notebook (if you run 
 https://colab.research.google.com/drive/1SP9-A2oODou3NgB8SpaVIFcGHuztXBiK?usp=sharing
 
 
-17 nov
-
+22 nov
 * model_creation_functions.py
+	* create_model(input_shape=(55,93,1),filts=None,kerns=None) 
 	* funcion_actualizacion(epoch,lr) 
+	* model_1_tel(input_shape=(55,93,1),filtros=None,batch_init=True,last_layers=None,avg_pooling=False,classes=3,learning_rate=1e-5,first_model=None,first_part=False) 
+	* model_multi_tel(len_inputs=4,input_shapes=[(55,93,1)],classes=7,learning_rate=1e-5,pre_proces_model=None,filtros=None,last_dense=None,autoencoder=None,common_pre=True,batch=False) 
+	* model_multi_tel_encoder(len_inputs=4,input_shapes=[(55,93,1)],classes=3,last_dense=None,encoder=None,common_pre=True) 
 * loaddata4use.py
 	* list_txts(base_txt_dir,element,run) 
 	* extract_info_txt(txt_dir,cols=None,cols_order=True) 
@@ -57,6 +60,7 @@ https://colab.research.google.com/drive/1SP9-A2oODou3NgB8SpaVIFcGHuztXBiK?usp=sh
 	* extract_single_tar(dir_in,dir_out,new_folder=True) 
 	* extract_multiple_tar(dir_folder_with_tars,dir_final_folder) 
 	* unzip_gunzip(base_dir,final_dir=None,elements=None,folders=True) 
+	* dif_dt_txt(dir,faltantes=False,max_val=None,ending=(".dt",".txt")) 
 	* lista_dt(dt_dir) 
 	* lista_txt(txt_dir) 
 	* multiple_dt_2_npy(lista_archivos,npy_dir,limit_size=0.35,save_events_id=False,verbose=False) 
