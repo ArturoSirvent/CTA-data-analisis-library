@@ -89,8 +89,9 @@ def model_1_tel(input_shape=(55,93,1),filtros=None,batch_init=True,last_layers=N
 
 
 
-
+#??this functions has a kernel_regularizer, is it always nice to have it?
 def model_multi_tel(len_inputs=4,input_shapes=[(55,93,1)],classes=7,learning_rate=1e-5,pre_proces_model=None,filtros=None,last_dense=None,autoencoder=None,common_pre=True,batch=False):
+    #this function creates a cnn model
     inputs=[]
     outputs=[[] for i in range(len_inputs)]
     if len(input_shapes)==1:
@@ -126,6 +127,7 @@ def model_multi_tel(len_inputs=4,input_shapes=[(55,93,1)],classes=7,learning_rat
         last_dense=[65,35]
     x=tf.keras.layers.concatenate(outputs)
     for i in last_dense:
+        #?? we add a kernel_regularizer for some reason so, it would be great to know if it does always help
         x=tf.keras.layers.Dense(i,activation="relu",kernel_regularizer="l2")(x)
     end_layer=tf.keras.layers.Dense(classes,activation="softmax")(x)
     model=tf.keras.Model(inputs=inputs,outputs=end_layer)
@@ -165,9 +167,66 @@ def model_multi_tel_encoder(len_inputs=4,input_shapes=[(55,93,1)],classes=3,last
         last_dense=[65,35]
     x=tf.keras.layers.concatenate(outputs)
     for i in last_dense:
+        #??kernel regularizer, should it be always there?
         x=tf.keras.layers.Dense(i,activation="relu",kernel_regularizer="l2")(x)
     end_layer=tf.keras.layers.Dense(classes,activation="softmax")(x)
     model=tf.keras.Model(inputs=inputs,outputs=end_layer)
     #model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),loss="categorical_crossentropy",metrics=["accuracy"])
 
     return model
+
+
+#model for the energy prediction
+#this function is almost identical to multi_tel, but it changes the last layer with
+
+
+def model_multi_tel_energy(len_inputs=4,input_shapes=[(55,93,1)],learning_rate=1e-5,pre_proces_model=None,batch_init=False,filtros=None,last_dense=None,autoencoder=None,common_pre=True):
+    #model for the energy prediction
+    inputs=[]
+    outputs=[[] for i in range(len_inputs)]
+    if len(input_shapes)==1:
+        for i in range(1,len_inputs):
+            input_shapes.append(input_shapes[0])
+
+    for i in range(len_inputs):
+        inputs.append(tf.keras.Input(shape=input_shapes[i]))
+
+    if pre_proces_model:
+        for i in range(len_inputs):
+            outputs[i]=pre_proces_model(inputs[i],first_model=autoencoder)
+    else:
+        if filtros is None:
+            filtros=[[64,128],[128,254,64],[32]]
+        #si no le metemos un modelo pues habra que meter aqui chicha porque sino se queda esto muy vacio
+        if common_pre:
+            pre_model=model_1_tel(input_shapes[0],batch_init=batch_init,filtros=filtros,first_part=True,first_model=autoencoder)
+            outputs[0]=pre_model(inputs[0])
+            for i in range(1,len_inputs):
+                if input_shapes[i]!=input_shapes[i-1]:
+                #esto esta suponiendo que ponemos juntos los que tienen igual shape
+                    pre_model=model_1_tel(input_shapes[i],batch_init=batch_init,filtros=filtros,first_part=True,first_model=autoencoder) 
+                outputs[i]=pre_model(inputs[i])
+
+        else:
+            for i in range(len_inputs):
+                pre_model=model_1_tel(input_shape=input_shapes[i],batch_init=batch_init,filtros=filtros,first_part=True)
+                outputs[i]=pre_model(inputs[i]) 
+    #nos falta la ultima parte
+    if last_dense is None:
+        last_dense=[65,25]
+    x=tf.keras.layers.concatenate(outputs)
+    for i in last_dense:
+        x=tf.keras.layers.Dense(i,activation="relu")(x)
+    end_layer=tf.keras.layers.Dense(1)(x)
+    model=tf.keras.Model(inputs=inputs,outputs=end_layer)
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),loss="mse")
+
+    return model
+
+#How to use it?
+
+"""
+model=model_multi_tel(learning_rate=1e-4,last_dense=[150,50],filtros=[[32, 64], [128, 256],
+                        [64, 32,4]],input_shapes=[(55,93,1),(55,93,1),(55,93,1),(55,93,1)],
+                        batch_init=False,common_pre=True)
+"""
