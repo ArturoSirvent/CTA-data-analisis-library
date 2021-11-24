@@ -10,13 +10,14 @@ An example of the functions use can be found in this Colab Notebook (if you run 
 https://colab.research.google.com/drive/1SP9-A2oODou3NgB8SpaVIFcGHuztXBiK?usp=sharing
 
 
-22 nov
+24 nov
 * model_creation_functions.py
 	* create_model(input_shape=(55,93,1),filts=None,kerns=None) 
 	* funcion_actualizacion(epoch,lr) 
 	* model_1_tel(input_shape=(55,93,1),filtros=None,batch_init=True,last_layers=None,avg_pooling=False,classes=3,learning_rate=1e-5,first_model=None,first_part=False) 
 	* model_multi_tel(len_inputs=4,input_shapes=[(55,93,1)],classes=7,learning_rate=1e-5,pre_proces_model=None,filtros=None,last_dense=None,autoencoder=None,common_pre=True,batch=False) 
 	* model_multi_tel_encoder(len_inputs=4,input_shapes=[(55,93,1)],classes=3,last_dense=None,encoder=None,common_pre=True) 
+	* model_multi_tel_energy(len_inputs=4,input_shapes=[(55,93,1)],learning_rate=1e-5,pre_proces_model=None,batch_init=False,filtros=None,last_dense=None,autoencoder=None,common_pre=True) 
 * loaddata4use.py
 	* list_txts(base_txt_dir,element,run) 
 	* extract_info_txt(txt_dir,cols=None,cols_order=True) 
@@ -34,15 +35,16 @@ https://colab.research.google.com/drive/1SP9-A2oODou3NgB8SpaVIFcGHuztXBiK?usp=sh
 	* load_dataset_ensemble(base_dir,elementos_clasif,pre_name_folders="npy_",telescopios=None,lista_list_runs=None,elementos=None,test_size=0.2,same_quant=False) 
 	* load_dataset_completo(npy_base_dir,main_list_runs,telescopes,labels_asign=None,elements=None,pre_name_folders="npy_",test_size=0.2,same_quant="same",verbose=True,fill=False,categorical=True) 
 	* create_main_list_runs(num_events,init_events=None,random_select=False,elementos=None,max_runs=None) 
+	* get_common_events_energy(npy_dir_base,tels=None,run=None,array_from_txt=None,return_eventos=False) 
+	* load_data(npy_dir,tels=None,runs=None,indices_runs=None,only_names=False,ending=".npy",test_size=0.2) 
+	* create_lista_list_runs(num_events,init_events=None,random_select=False,elementos=None,max_runs=None) 
+	* extract_info_txt(txt_dir,cols=None,cols_order=True) 
+	* get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,cols=None,cols_order=True,ending=".txt") 
 * data_EDA_first_sight.py
 	* pos_telescopes(txt_with_the_Data,configurations_names,plotted=True,telescope_ranges=None,plot_save_dir=None) 
 	* analysis_npy_files_sep(output_dir,npy_dir=None,npy_list=None, ) 
 	* analysis_npy_files_conjunt(output_dir,npy_dir=None,npy_list=None) 
 	* plot_variable_grouped(dt_dir,txt_dir,n_bins=16,variable_split_criteria=3) 
-* list_funciones_in_files.py
-	* find_files(base_dir) 
-	* get_func_names_and_args(list_paths,get_args=False) 
-	* master_get_funcs(base_dir,get_args=True) 
 * model_results_representations.py
 	* hex_repre(matrix=None,npy_file=None,savedir=None) 
 	* print_conf_matrix(matrix,elements=None,sin_diag=True,save_dir=None) 
