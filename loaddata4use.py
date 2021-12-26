@@ -869,11 +869,38 @@ def get_common_events_energy(npy_dir_base,tels=None,run=None,array_from_txt=None
 
 
 
-#por ultimo la funcion que nos va a administrar toda la carga de datos, aqui es donde pondemos la funcion de elergir el numero de runs para cada elementos
+
+#?? this funciton is like the one for extracting info from the txt file, bot more specific
+
+#ahora necesitamos poder indicar el telescopio, la run y el elemento para que nos lo devulve
+def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,cols=None,cols_order=True,ending=".txt"):
+    if (type(tel)==list) or (type(tel)==np.ndarray):
+        list_return=[]
+        for i in tel:
+            regex=f"{base_dir}/{extension}{element}/{element}_tel_{i}_run_{str(run).zfill(2)}{ending}"
+            aux=glob.glob(regex)
+            if aux:
+                list_return_aux=extract_info_txt(aux[0],cols=cols,cols_order=cols_order)
+                list_return.append(list_return_aux)
+            else:
+                print("Error, archivo no encontrado")
+                return None
+    else:
+        regex=f"{base_dir}/{extension}{element}/{element}_tel_{tel}_run_{str(run).zfill(2)}{ending}"
+        aux=glob.glob(regex)
+        if aux:
+            list_return=extract_info_txt(aux[0],cols=cols,cols_order=cols_order)
+        else:
+            print("Error, archivo no encontrado")
+            return None
+
+    return list_return
+
+
 
 
 #MODIFICACION PARA QUE HAYA MAS O MENOS LA MISMA CANTIDAD DE DATOS DE CADA UNO.
-def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs=None,pre_name_folders_npy="npy_",pre_name_folders_txt="extract_",telescopios=None,test_size=0.2,same_quant="same",verbose=True,fill=False):
+def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,pre_name_folders_npy="npy_",pre_name_folders_txt="extract_",telescopios=None,test_size=0.2,same_quant="same",verbose=True,fill=False):
     #LOS TELESCOPIOS EN UNA LISTA AUNQUE SEA 1
     #la estructura de datos esperada es una carpeta contenedora de las carpetas con los archivos npy
     #y prename folder es eso que va delante del nombre de la carpeta que tiene el nombre del elemento
@@ -888,11 +915,19 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs
         elementos=['gamma', 'electron', 'proton', 'helium', 'iron', 'nitrogen', 'silicon']
 
 
-    if len(lista_list_runs)!=len(elementos):
+    if len(main_list_runs)!=len(elementos):
         #como lista_list_runs es una lista de las runs que vamos a tomar, pues deber haber una para cada elemento
-        print("Error con la long de los elementos y las runs")
+        print("ERROR WITH THE LENGTHS OF ELEMENTS AND LABELS")
         return None
 
+    if len(main_list_runs)!=len(elementos):
+        #the length of the list with the runs for each element, must be equal to the length of elements we are considering 
+        print("ERROR WITH THE LENGTH OF MAIN_LIST AND THE ELEMENTS")
+        return None
+
+    if verbose:
+        print("Load of names and common events")
+        print("_______________")
 
     #para cada elemento y para cada RUN tenemos que indicar los eventos validos
     energia_label=[]
@@ -901,7 +936,7 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs
     for i,j in enumerate(elementos):
         dir_aux=f"{base_dir_npy}/{pre_name_folders_npy}{j}"
         eventos_runs=[]
-        list_runs=lista_list_runs[i]
+        list_runs=main_list_runs[i]
         aux_num_events=0
         energia_label_aux=[]
         for l,k in enumerate(list_runs):
@@ -913,7 +948,9 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs
             #ahora tenemos los eventos de cada txt y los que sí se van a usar
             #solo tenemos que conseguir un array con los indices
             if verbose:
-                print(j,k,list_runs,aux_events.shape,aux_events_energy.shape)
+                #print(j,k,list_runs,aux_events.shape,aux_events_energy.shape)
+                print("Element: ",j,", Telescope: ",k,", Runs: ",list_runs," Shape of common events (tels,common events, energies): ",aux_events.shape,aux_events_energy.shape)
+
             energia=get_txt_info(base_dir_txt,extension=pre_name_folders_txt,cols=2,tel=telescopios[0],run=k,element=j,cols_order=True)
             if len(aux_events_energy[0])!=0:
                 energia_label_aux.extend(energia[aux_events_energy[0]])
@@ -937,6 +974,8 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs
 
     if verbose:
         print("_______________")
+        print("Load of actual npy data:")
+        print("_______________")
 
     
     if (same_quant=="approx") :
@@ -952,11 +991,11 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs
     for l,k in enumerate(telescopios):
         for i,j in enumerate(elementos):
             dir_aux=f"{base_dir_npy}/{pre_name_folders_npy}{j}"
-            list_runs=lista_list_runs[i]
+            list_runs=main_list_runs[i]
             #TENEMOS QUE TENER UNA LISTA DE LOS INDICES/eventos QUE SÍ COMPARTEN ID, EL RESTO NO NOS INTERESA
             #lo que hacemos es pasarle una lista de los indices PARA:
             #PARA el elemento que toca y el telescopio qeu toca, para todas las runs que queremos 
-            data_aux=load_data(dir_aux,tels=k,runs=list_runs,indices_runs=[m[l,:] for m in eventos_elementos[i]],only_names=False)
+            data_aux=load_data(dir_aux,tels=k,runs=list_runs,indices_events=[m[l,:] for m in eventos_elementos[i]],only_names=False)
 
             if same_quant in ["same","approx"]:
                 data_aux=data_aux[:cantidad]
@@ -971,9 +1010,11 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs
                     data_aux[p,:,:]=fill_holes(data_aux[p])
 
             if verbose:
-                print(j,k,data_aux.shape)
+                #print(j,k,data_aux.shape)
+                print("Element: ",j,", Telescope: ",k," Shape of loaded array (amount of images, size of images): ",data_aux.shape)
+
                 if l==0:
-                    print(energia_label[i].shape)
+                    print("Energy vector shape:", energia_label[i].shape)
             if i==0 :
                 data=data_aux
             else:
@@ -997,11 +1038,11 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs
             del data
 
         if (x_train.shape[0]!=y_train.shape[0]) or (x_test.shape[0]!=y_test.shape[0]):
-            print("Ha habido algún problema con las dimensiones y eso...te jodes lo siento")
+            print("Must be some problems with the dimmensions...mmmm sorry")
             return None
         del x_train,x_test
 
-    print("EXITO")
+    print("SUCCESS")
     if len(telescopios)==1:
         return x_train_list[0],x_test_list[0],y_train_list,y_test_list
     else:
@@ -1014,7 +1055,7 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs
 a=create_lista_list_runs(num_events=[6,39],init_events=np.ones(2),random_select=False)
 npy_base="/content/drive/MyDrive/prediccion_datos_muchos_telescopios/datos_muchos_tels_seleccion_6_03_21/npy_data"
 dir_base_txt="/content/drive/MyDrive/prediccion_datos_muchos_telescopios/datos_muchos_tels_seleccion_6_03_21"
-x_train,x_test,y_train,y_test=load_dataset_energy(npy_base,dir_base_txt,elementos=['gamma', 'electron'],lista_list_runs=a,
+x_train,x_test,y_train,y_test=load_dataset_energy(npy_base,dir_base_txt,elementos=['gamma', 'electron'],main_list_runs=a,
                                                     telescopios=[4,5,6,11],test_size=0.2,same_quant="all",verbose=True,fill=True)
 
 #more info on the file auxiliar_final_results_with_energy_predict.ipynb
@@ -1249,30 +1290,4 @@ def extract_info_txt(txt_dir,cols=None,cols_order=True):
 
     else:
         return np.array([float(j[cols]) for j in a]).astype("float")
-
-
-#ahora necesitamos poder indicar el telescopio, la run y el elemento para que nos lo devulve
-def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,cols=None,cols_order=True,ending=".txt"):
-    if (type(tel)==list) or (type(tel)==np.ndarray):
-        list_return=[]
-        for i in tel:
-            regex=f"{base_dir}/{extension}{element}/{element}_tel_{i}_run_{str(run).zfill(2)}{ending}"
-            aux=glob.glob(regex)
-            if aux:
-                list_return_aux=extract_info_txt(aux[0],cols=cols,cols_order=cols_order)
-                list_return.append(list_return_aux)
-            else:
-                print("Error, archivo no encontrado")
-                return None
-    else:
-        regex=f"{base_dir}/{extension}{element}/{element}_tel_{tel}_run_{str(run).zfill(2)}{ending}"
-        aux=glob.glob(regex)
-        if aux:
-            list_return=extract_info_txt(aux[0],cols=cols,cols_order=cols_order)
-        else:
-            print("Error, archivo no encontrado")
-            return None
-
-    return list_return
-
 
