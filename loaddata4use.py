@@ -149,7 +149,7 @@ def events_and_energy(base_txt_dir,element,run):
 #################################################################################
 #################################################################################
 #FUNCIONES PARA JUNTAR TODAS LAS IMÁGENES EN UNA SOLA Y HACER UN MODELO QUE CON
-#UN SOLO INPUT MUY GRANDE. ESTO SE PROVÓ, PERO SE USÓ EN EL RESULTADO FINAL
+#UN SOLO INPUT MUY GRANDE. ESTO SE PROBÓ, PERO NO SE USÓ EN EL RESULTADO FINAL
 #################################################################################
 #################################################################################
 
@@ -809,7 +809,7 @@ def create_main_list_runs(num_events,init_events=None,random_select=False,elemen
 
 #################################################################################
 #################################################################################
-#FUNCIONES PARA LA CARGA DE DATOS DE ENERGIA!!!
+#FUNCIONS FOR THE ENERGY LOADING PROCESS!!!
 #################################################################################
 #################################################################################
 
@@ -873,8 +873,7 @@ def get_common_events_energy(npy_dir_base,tels=None,run=None,array_from_txt=None
 
 
 #MODIFICACION PARA QUE HAYA MAS O MENOS LA MISMA CANTIDAD DE DATOS DE CADA UNO.
-def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs=None,pre_name_folders_npy="npy_",pre_name_folders_txt="extract_",
-                        telescopios=None,test_size=0.2,same_quant="same",verbose=True,fill=False):
+def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs=None,pre_name_folders_npy="npy_",pre_name_folders_txt="extract_",telescopios=None,test_size=0.2,same_quant="same",verbose=True,fill=False):
     #LOS TELESCOPIOS EN UNA LISTA AUNQUE SEA 1
     #la estructura de datos esperada es una carpeta contenedora de las carpetas con los archivos npy
     #y prename folder es eso que va delante del nombre de la carpeta que tiene el nombre del elemento
@@ -1007,6 +1006,93 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,elementos=None,lista_list_runs
         return x_train_list[0],x_test_list[0],y_train_list,y_test_list
     else:
         return x_train_list,x_test_list,y_train_list,y_test_list
+
+
+
+#How to use it?
+"""
+a=create_lista_list_runs(num_events=[6,39],init_events=np.ones(2),random_select=False)
+npy_base="/content/drive/MyDrive/prediccion_datos_muchos_telescopios/datos_muchos_tels_seleccion_6_03_21/npy_data"
+dir_base_txt="/content/drive/MyDrive/prediccion_datos_muchos_telescopios/datos_muchos_tels_seleccion_6_03_21"
+x_train,x_test,y_train,y_test=load_dataset_energy(npy_base,dir_base_txt,elementos=['gamma', 'electron'],lista_list_runs=a,
+                                                    telescopios=[4,5,6,11],test_size=0.2,same_quant="all",verbose=True,fill=True)
+
+#more info on the file auxiliar_final_results_with_energy_predict.ipynb
+"""
+
+####################################################################################
+####################################################################################
+#FUNCION THAT LOADS THE GROUND TRUTH THE SIMULATIONS TELLS US THAT HAS NO NOISE!!!
+####################################################################################
+####################################################################################
+
+#El único cambio relevante aqui es que contamos con una comprobación de que la sexta columna de ==1, que es 
+#la forma que tiene el simulador de indicarnos que ese pixel efectivamente de activo por una detección.
+
+def simple_load_dt_2_npy(file,verbose=False,save=False,save_events_id=False,npy_dir_aux=None,truth_sim=True):
+    num_pix_x=0
+    num_pix_y=0
+    verbose_list=[]
+    dt_list=[]  
+    nombre_archivo=re.findall("([a-zA-Z]*_tel_[0-9]*_run_\d\d).dt",file)[0]
+    aux_df=pd.read_csv(file,sep='  ',names=["1","2","3","4","5","6"],engine="python")
+    #ahora la procesamos y la guardamos en un npy
+    if truth_sim:
+        value_auf=aux_df.loc[aux_df.loc[:,"6"]==1][['1','3','4','5']].copy()
+    else:
+        value_auf=aux_df[['1','3','4','5']].copy()
+
+    del aux_df
+    #tenemos que agupar los valores 
+    value_auf.loc[value_auf["5"]<0,"5"]=0
+    #max_aux=np.amax(value_auf["5"])
+    #value_auf["5"]=value_auf["5"]/max_aux
+    x_minimo=min(value_auf['3'])
+    y_minimo=min(value_auf['4'])
+    events=value_auf["1"].unique()
+    num_pix_x_aux=value_auf["3"].unique().size
+    num_pix_y_aux=value_auf["4"].unique().size
+    if (num_pix_x != num_pix_x_aux) or (num_pix_y != num_pix_y_aux) : #tenemos que ser capacer de cambiar segun si observamos un telescopio u otro
+        num_pix_x=num_pix_x_aux
+        num_pix_y=num_pix_y_aux
+        if verbose:
+            #print(num_pix_x,num_pix_y)
+            verbose_list.append((num_pix_x,num_pix_y))
+
+        x_minimo=min(value_auf['3'])
+        y_minimo=min(value_auf['4'])
+        ##!!!esto puede dar problemas si resulta que para el primer evento faltan datos o algo...
+        auxiliar=value_auf.loc[value_auf["1"]==events[0]][["3","4","5"]].to_numpy()
+        #ahora tenemos los datos de los pixeles, podemos obtener lo que ocupa cada pixel
+        size_pix_x=np.ceil((max(auxiliar[:,0])-min(auxiliar[:,0]))/(np.unique(auxiliar[:,0]).size-1))
+        size_pix_y=np.ceil((max(auxiliar[:,1])-min(auxiliar[:,1]))/(np.unique(auxiliar[:,1]).size-1))
+        del auxiliar
+    if verbose:
+        #print(nombre_archivo,end="\n")
+        verbose_list.append(nombre_archivo)
+
+    value_auf.loc[:,'3']=value_auf['3'].apply(lambda x: round((x-x_minimo)/size_pix_x))
+    value_auf.loc[:,'4']=value_auf['4'].apply(lambda x: round((x-y_minimo)/size_pix_y))
+    #event_aux=value_auf["1"].unique()
+    for k in range(np.shape(events)[0]):
+        #cada evento tiene que ponerse en una imagen con sus valores
+        array_aux=value_auf.loc[value_auf["1"]==events[k]][["3","4","5"]]
+        #lo que vamos a hacer es poner los valores en una matriz creada de antemano y guardar esa matrix
+        #esos numeros vienen del maximo y el minimo valor para los pixeles, simplemente shifteamos todo
+        matrix_aux=np.zeros((num_pix_x,num_pix_y)) #eran 60-5= 55 y 131-38
+        matrix_aux[array_aux["3"].to_numpy(),array_aux["4"].to_numpy()]=array_aux["5"].to_numpy() 
+        dt_list.append(matrix_aux)
+
+    if save:
+        name_npy=f"{npy_dir_aux}/npy_sin_normal_{nombre_archivo}_{contador_nombre}.npy"
+        np.save(name_npy,np.array(dt_list))
+    if save_events_id:
+        name_npy_events=f"{npy_dir_aux}/id_eventos_npy_sin_normal_{nombre_archivo}.npy"
+        np.save(name_npy_events,np.array(events))
+    if verbose:
+        return verbose_list, np.array(dt_list)
+    else:
+        return np.array(dt_list)
 
 
 ##############################################################################
@@ -1190,13 +1276,3 @@ def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,co
     return list_return
 
 
-#How to use it?
-"""
-a=create_lista_list_runs(num_events=[6,39],init_events=np.ones(2),random_select=False)
-npy_base="/content/drive/MyDrive/prediccion_datos_muchos_telescopios/datos_muchos_tels_seleccion_6_03_21/npy_data"
-dir_base_txt="/content/drive/MyDrive/prediccion_datos_muchos_telescopios/datos_muchos_tels_seleccion_6_03_21"
-x_train,x_test,y_train,y_test=load_dataset_energy(npy_base,dir_base_txt,elementos=['gamma', 'electron'],lista_list_runs=a,
-                                                    telescopios=[4,5,6,11],test_size=0.2,same_quant="all",verbose=True,fill=True)
-
-#more info on the file auxiliar_final_results_with_energy_predict.ipynb
-"""

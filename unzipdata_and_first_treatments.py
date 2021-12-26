@@ -391,3 +391,113 @@ def dt_2_npy(base_dir,npy_base_dir=None,elements=None,save_names_list=True):
                 os.mkdir(dest_folder_name)
             #now we just give the function the list and the destination
             multiple_dt_2_npy(names_files,dest_folder_name,save_events_id=True,verbose=False)
+
+
+
+############################################################################################
+############################################################################################
+# CODE MADE FOR CHECKING THAT ALL DT FILE HAS A CORRESPONING NPY FILE AND IT WAS SUCCESFULL
+############################################################################################
+############################################################################################
+
+
+
+#ahora vamos a comprobar qeu exactamente, estan los mismos dt que npy 
+#?? maybe this function is not the last version, it was contained in the Nuevos_archivos_muchos_telescopios.ipynb
+def dif_dt_txt(dirs,faltantes=False,max_val=None,ending=(".dt",".txt")):
+    #esta funcion comprueba si hay los mismo archivos para txt y dt y cuales faltan y hasta que run llegan
+    #devuelve un diccionario con los telescopios y las runs de cada uno
+ 
+    #si pedimos los faltantes y damos un max_val obtenemos los que no hay en cada run
+    if (len(dirs)==2) and (type(dirs==list)):
+        os.chdir(dirs[0])
+        file_dt=glob.glob(f"*{ending[0]}")
+        os.chdir(dirs[1])
+        file_txt=glob.glob(f"npy_*{ending[1]}")
+    elif (len(dirs)==1) and (type(dirs==list)):
+        os.chdir(dirs[0])
+        file_dt=glob.glob(f"*{ending[0]}")
+        file_txt=glob.glob(f"*{ending[1]}")
+    elif type(dirs)!=list:
+        os.chdir(dirs)
+        file_dt=glob.glob(f"*{ending[0]}")
+        file_txt=glob.glob(f"*{ending[1]}")
+    else:
+        print("ERROR CON DIRS ")
+        return None
+ 
+    #primero extraemos la informacion importante, el tel y la run
+    tel_run_dt=np.array([ np.array([ re.findall("tel_([0-9]*)_",i)[0] ,re.findall("run_([0-9]*).",i)[0]],dtype="int")  for i in file_dt])
+    tel_run_txt=np.array([ np.array([ re.findall("tel_([0-9]*)_",i)[0] ,re.findall("run_([0-9]*).",i)[0] ],dtype="int")  for i in file_txt])
+ 
+    #una vez tenemos la info, queremos ver si son iguales
+    #primero las dimensiones
+    if tel_run_dt.shape[0]!=tel_run_txt.shape[0]:
+        print("Error con las dimensiones, no hay los mismos")
+        if tel_run_dt.shape[0] > tel_run_txt.shape[0]:
+            for i in tel_run_dt:
+                if not np.all(tel_run_txt==i,axis=-1).any():
+                    print(f"El tel_{i[0]}_run_{i[1]}.{ending[0]} no tiene correspondiente {ending[1]}.")
+        else:
+            for i in tel_run_txt:
+                if not np.all(tel_run_dt==i,axis=-1).any():
+                    print(f"El tel_{i[0]}_run_{i[1]}.{ending[1]} no tiene correspondiente {ending[0]}.")
+        return None
+ 
+    #son iguales las dos listas?
+    salir=False
+    for i in tel_run_dt:
+        if i not in tel_run_txt:
+            print(f"{i} no tiene correspondiente {ending[0]}")
+            salir=True
+    for i in tel_run_txt:
+        if i not in tel_run_dt:
+            print(f"{i} no tiene correspondiente {ending[1]}")
+            salir=True
+    if salir:
+        return None
+    else:
+        print(f"Para {os.path.basename(dirs[1])} todos los {ending[1]} tienen {ending[0]} y viceversa, todo bien.")
+    
+    #si las dimensiones sí estan bien entonces pasamos a listar los telescopios que hay para cada elemento y las runs para cada telescopio
+    telescopios=sorted(np.unique(tel_run_dt[:,0]))
+    runs=[sorted(tel_run_dt[tel_run_dt[:,0]==i][:,1]) for i in telescopios]
+    #por ultimo vamos a hacer un diccionario que tenga el telescopios y las runs que agrupa
+    if not faltantes:
+        return dict(zip(telescopios,runs))
+    else:
+        if max_val is None:
+            print("pasa un valor maximo para las runs")
+            return None
+        else:
+            runs_reales=np.arange(1,max_val+1)
+            run_faltantes=[]
+            for i in range(len(runs)):
+                faltan=[]
+                for j in runs_reales:
+                    if j not in runs[i]:
+                        faltan.append(j)
+                run_faltantes.append(faltan)
+            diccionario=dict(zip(telescopios,run_faltantes))
+            for i in telescopios:
+                if (diccionario[i]==[]):
+                    diccionario.pop(i)
+            return diccionario
+
+
+
+#?? it would be great to have it as a function pliiis
+ 
+"""
+elementos=["gamma","nitrogen","silicon","electron","helium","proton","iron"]
+max_runs=[41,41,41,41,41,41,41]
+ 
+lista=[]
+for j,elem in enumerate(elementos):
+    carpeta1=f"{npy_save_dir}/extract_{elem}"
+    carpeta2=f"{npy_data}/npy_{elem}"
+    lista.append(dif_dt_txt([carpeta1,carpeta2],faltantes=True,max_val=max_runs[j],ending=(".dt",".npy")))
+ 
+lista=dict(zip(elementos,lista))
+lista
+"""
