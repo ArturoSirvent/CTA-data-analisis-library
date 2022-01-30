@@ -1,12 +1,6 @@
 #once we train the model, we would like to keep track of the results, store them as json in case we try many architectures
 #and access it later for visualize accuracy and other parameters. This functions aim to it.
 
-
-
-
-
-
-
 #################################################################
 #################################################################
 #Funciones representacion parte clasificador notebook final
@@ -36,7 +30,7 @@ def hex_repre(matrix=None,npy_file=None,savedir=None):
 
 
 
-#funcion que nos ayuda a mostar la matrix de confusion, necesita seaborn as sns
+#funcion que nos ayuda a mostar la matrix de confusion, needs seaborn as sns
 def print_conf_matrix(matrix,elements=None,sin_diag=True,save_dir=None):
     if elements is None:
         elements=['gamma', 'electron', 'proton', 'helium', 'iron', 'nitrogen', 'silicon']
