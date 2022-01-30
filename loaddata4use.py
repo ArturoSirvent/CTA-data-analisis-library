@@ -1014,7 +1014,7 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,
                 print("Element: ",j,", Telescope: ",k," Shape of loaded array (amount of images, size of images): ",data_aux.shape)
 
                 if l==0:
-                    print("Energy vector shape:", energia_label[i].shape)
+                    print("Energies vector shape:", energia_label[i].shape)
             if i==0 :
                 data=data_aux
             else:
@@ -1024,7 +1024,9 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,
         data=data[...,np.newaxis]
         if l==0:
             energia_label=np.concatenate([h for h in energia_label])
-            print(energia_label.shape,data.shape)
+            if verbose:
+                print("Final data shape",data.shape,"Final energies shape: ",energia_label.shape)
+                print("_____________________ \n")
             x_train,x_test,y_train,y_test =train_test_split(data,energia_label,test_size=test_size,random_state=42)
             del data
             y_train_list=y_train

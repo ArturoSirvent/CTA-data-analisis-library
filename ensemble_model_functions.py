@@ -1,8 +1,4 @@
 
-
-
-
-
 # funcion de carga más personalizada
 
 #primero funcion que carga los datos al darle unos telescopios y runs 

@@ -151,7 +151,7 @@ def analysis_npy_files_conjunt(output_dir,npy_dir=None,npy_list=None):
 
     
     vals_perc=[np.percentile(data,75),np.percentile(data,85),np.percentile(data,99.9)]
-    for j in range(len(perc)):
+    for j in range(len(vals_perc)):
       data_aux=data.copy()
       #name_aux_sum_img="sum_"+perc[j]+"_"+name_aux
       data_aux[data<vals_perc[j]]=0
