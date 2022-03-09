@@ -10,6 +10,14 @@ An example of the functions use can be found in this Colab Notebook (if you run 
 https://colab.research.google.com/drive/1SP9-A2oODou3NgB8SpaVIFcGHuztXBiK?usp=sharing
 
 
+### The functions workflow: 
+
+![]("imags/carga_inicial_datos.png")    
+![]("imags(create_model_etc.png")
+
+
+### List of the functions and its arguments:
+
 26 dec
 * model_creation_functions.py
 	* def create_model(input_shape=(55,93,1),filts=None,kerns=None): 
