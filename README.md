@@ -13,10 +13,10 @@ https://colab.research.google.com/drive/1SP9-A2oODou3NgB8SpaVIFcGHuztXBiK?usp=sh
 ### The functions workflow: 
 
 
-![]("./imgs/carga_inicial_datos.png") 
+![](./imgs/carga_inicial_datos.png) 
 
 
-![]("./imgs/create_model_etc.png")
+![](./imgs/create_model_etc.png)
 
 
 ### List of the functions and its arguments:
