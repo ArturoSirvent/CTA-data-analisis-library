@@ -267,7 +267,7 @@ def multiple_dt_2_npy(lista_archivos,npy_dir,limit_size=0.35,save_events_id=Fals
             return
         contador_nombre=0
         dt_list=[]  
-        nombre_archivo=re.findall("([a-zA-Z]*_tel_[0-9]*_run_\d\d).dt$",files_names[j])[0]
+        nombre_archivo=re.findall("([a-zA-Z]*_tel_[0-9]*_run_\d+).dt$",files_names[j])[0]
         aux_df=pd.read_csv(files_names[j],sep='  ',names=["1","2","3","4","5","6"],engine="python")
         #ahora la procesamos y la guardamos en un npy
         value_auf=aux_df[['1','3','4','5']].copy()
