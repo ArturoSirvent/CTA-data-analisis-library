@@ -331,7 +331,7 @@ def multiple_dt_2_npy(lista_archivos,npy_dir,limit_size=0.35,save_events_id=Fals
 
 
 
-def dt_2_npy(base_dir,npy_base_dir=None,elements=None,save_names_list=True):
+def dt_2_npy(base_dir,npy_base_dir=None,elements=None,save_names_list=True,verbose=False):
     #this function recives a directory where we have some extract_element
     #folders with the dt and txt files. Then the dt files are translated into 
     #npy files into a new folder npy_element (inside the npy_base_dir)
@@ -380,7 +380,7 @@ def dt_2_npy(base_dir,npy_base_dir=None,elements=None,save_names_list=True):
                 if k not in files_done:
                     #if this file was not done then we proceed
                     #the k must be replaced by a 1- element list no?
-                    multiple_dt_2_npy(k,dest_folder_name,save_events_id=True,verbose=False)
+                    multiple_dt_2_npy(k,dest_folder_name,save_events_id=True,verbose=verbose)
                     #after doing it, we save the result
                     files_done.append(k)
                     np.save(f"{dest_folder_name}/files_done_{j}.npy",files_done)
@@ -390,7 +390,7 @@ def dt_2_npy(base_dir,npy_base_dir=None,elements=None,save_names_list=True):
             if not os.path.isdir(dest_folder_name):
                 os.mkdir(dest_folder_name)
             #now we just give the function the list and the destination
-            multiple_dt_2_npy(names_files,dest_folder_name,save_events_id=True,verbose=False)
+            multiple_dt_2_npy(names_files,dest_folder_name,save_events_id=True,verbose=verbose)
 
 
 
