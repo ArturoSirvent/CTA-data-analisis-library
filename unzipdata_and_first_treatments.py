@@ -30,6 +30,10 @@ import re
 #for reading the .dt etc...
 import pandas as pd
 
+#print de date 
+
+from datetime import datetime 
+
 
 #FIRST STAGE, FROM DATA FILES INTO PYTHON
 
@@ -377,7 +381,10 @@ def dt_2_npy(base_dir,npy_base_dir=None,elements=None,save_names_list=True,verbo
                 #loop over the dt files for an element
                 #multiple_dt_2_npy can handdle a list of multiple files, but because save_names_list=True
                 #we will procced slowly one by one, passing each time a 1 length list with the file name
+                
                 if k not in files_done:
+                    if verbose:
+                        print(datetime.now().strftime("%H:%M:%S"),j,k)
                     #if this file was not done then we proceed
                     #the k must be replaced by a 1- element list no?
                     multiple_dt_2_npy(k,dest_folder_name,save_events_id=True,verbose=verbose)
