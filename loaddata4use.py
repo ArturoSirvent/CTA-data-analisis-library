@@ -9,7 +9,7 @@ import os
 import glob
 import tensorflow as tf
 import re
-from sklearn.utils import train_test_split
+from sklearn.model_selection import train_test_split
 import seaborn as sns
 
 #with the npy files we are not done. 
