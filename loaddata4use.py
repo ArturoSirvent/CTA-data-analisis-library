@@ -22,7 +22,7 @@ def list_txts(base_txt_dir,element,run):
     #in the same run we will have same events, for diferent telescopes
     #the expected directory structure is base_txt_dir-> element_folders -> txt files for all run for all telescopes
     #?? it could be good to do it more general
-    regex=f"{base_txt_dir}/*/{element}_tel_*_run_{str(run).zfill(2)}.txt"
+    regex=f"{base_txt_dir}/*/{element}_tel_*_run_{str(run).zfill(3)}.txt"
     return sorted(glob.glob(regex),key=lambda x: int(re.findall("tel_([0-9]*)_",x)[0]))
  
 
@@ -205,9 +205,9 @@ def big_input_img(tels,element,run,base_txt_dir,base_npy_dir,return_energies=Fal
  
         #si está seguimos adelante cargando el evento
         #tenemos que cargar la lista y ver el indice para luego cargar el evento
-        indices_aux=np.load(f"{base_npy_dir}/npy_{element}/id_eventos_npy_sin_normal_{element}_tel_{i}_run_{str(run).zfill(2)}.npy")
+        indices_aux=np.load(f"{base_npy_dir}/npy_{element}/id_eventos_npy_sin_normal_{element}_tel_{i}_run_{str(run).zfill(3)}.npy")
         comprobar_shape_1=indices_aux.shape[0]
-        img_aux=np.load(f"{base_npy_dir}/npy_{element}/npy_sin_normal_{element}_tel_{i}_run_{str(run).zfill(2)}_0.npy")
+        img_aux=np.load(f"{base_npy_dir}/npy_{element}/npy_sin_normal_{element}_tel_{i}_run_{str(run).zfill(3)}_0.npy")
         comprobar_shape_2=img_aux.shape[0]
         if comprobar_shape_1 != comprobar_shape_2:
             print(f"Error con las dimensiones del array de indices y el de imagenes para {element}: run {run}, tel {i}.")
@@ -358,7 +358,7 @@ def get_common_events(npy_element_dir,tels=None,run=None):
     if (type(tels)==list) or (type(tels)==np.ndarray):
         #primero miramos a ver si es una lista los telescopios
         for i in tels:
-            regex=f"{npy_element_dir}/id_eventos_*_tel_{i}_run_{str(run).zfill(2)}.npy"
+            regex=f"{npy_element_dir}/id_eventos_*_tel_{i}_run_{str(run).zfill(3)}.npy"
             aux=glob.glob(regex)
             if aux:
                 lista.append(np.load(aux[0]))
@@ -422,7 +422,7 @@ def load_data(npy_dir_element,tels,runs,indices_events=None,only_names=False,end
             for j in runs:
                 #?? it is done with glob regular expresion, and its highly dependent in the way 
                 #i formated the names, it would be great to generalize
-                regex=f"{npy_dir_element}/*_tel_{i}_run_{str(j).zfill(2)}_?{ending}"
+                regex=f"{npy_dir_element}/*_tel_{i}_run_{str(j).zfill(3)}_?{ending}"
                 aux=glob.glob(regex)
                 if aux:
                     lista.extend(aux)
@@ -433,7 +433,7 @@ def load_data(npy_dir_element,tels,runs,indices_events=None,only_names=False,end
                     return None
     else:
         for j in runs:
-            regex=f"{npy_dir_element}/*_tel_{tels}_run_{str(j).zfill(2)}_?{ending}"
+            regex=f"{npy_dir_element}/*_tel_{tels}_run_{str(j).zfill(3)}_?{ending}"
             aux=glob.glob(regex)
             if aux:
                 lista.extend(aux)
@@ -638,7 +638,7 @@ def load_dataset_completo(npy_base_dir,main_list_runs,telescopes,labels_asign=No
             #all this is for apply the get_common_event to all the runs we want to use
             aux_events=get_common_events(dir_aux,tels=telescopes,run=k)
             if verbose:
-                print("Element: ",j,", Telescope: ",k,", Runs: ",list_runs," Shape of common events (tels,common events): ",aux_events.shape)
+                print(l,"; ", "Element: ",j," , Runs: ",list_runs," Shape of common events (tels,common events): ",aux_events.shape)
             eventos_runs.append(aux_events)
             aux_num_events+=aux_events.shape[1]
         numero_eventos.append(aux_num_events)
@@ -754,6 +754,8 @@ def load_dataset_completo(npy_base_dir,main_list_runs,telescopes,labels_asign=No
 
 #una funcion para crear la lista de list runs segun nos sea necesaria para indicar las runs a tomar de cada elemento
 
+
+
 def create_main_list_runs(num_events,init_events=None,random_select=False,elementos=None,max_runs=None):
     #easy way to create the main_list_runs, because it will be a list of 7 elements, with around 20 sub elements each, 
     #to create such list, we can select some options and do it automatically
@@ -824,7 +826,7 @@ def get_common_events_energy(npy_dir_base,tels=None,run=None,array_from_txt=None
     if (type(tels)==list) or (type(tels)==np.ndarray):
         #primero miramos a ver si es una lista los telescopios
         for i in tels:
-            regex=f"{npy_dir_base}/id_eventos_*_tel_{i}_run_{str(run).zfill(2)}.npy"
+            regex=f"{npy_dir_base}/id_eventos_*_tel_{i}_run_{str(run).zfill(3)}.npy"
             aux=glob.glob(regex)
             if aux:
                 lista.append(np.load(aux[0]))
@@ -877,7 +879,7 @@ def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,co
     if (type(tel)==list) or (type(tel)==np.ndarray):
         list_return=[]
         for i in tel:
-            regex=f"{base_dir}/{extension}{element}/{element}_tel_{i}_run_{str(run).zfill(2)}{ending}"
+            regex=f"{base_dir}/{extension}{element}/{element}_tel_{i}_run_{str(run).zfill(3)}{ending}"
             aux=glob.glob(regex)
             if aux:
                 list_return_aux=extract_info_txt(aux[0],cols=cols,cols_order=cols_order)
@@ -886,7 +888,7 @@ def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,co
                 print("Error, archivo no encontrado")
                 return None
     else:
-        regex=f"{base_dir}/{extension}{element}/{element}_tel_{tel}_run_{str(run).zfill(2)}{ending}"
+        regex=f"{base_dir}/{extension}{element}/{element}_tel_{tel}_run_{str(run).zfill(3)}{ending}"
         aux=glob.glob(regex)
         if aux:
             list_return=extract_info_txt(aux[0],cols=cols,cols_order=cols_order)
@@ -1144,7 +1146,7 @@ def simple_load_dt_2_npy(file,verbose=False,save=False,save_events_id=False,npy_
 #HAVE CHANGES BECAUSE THE DEAL WITH THE ENERGY DATA LOADING PROCCESS???
 
 ##############################################################################
-
+"""
 #primero funcion que carga los datos al darle unos telescopios y runs 
 def load_data(npy_dir,tels=None,runs=None,indices_runs=None,only_names=False,ending=".npy",test_size=0.2):
     #aplicamos regular expresions para extraer los documentos deseados
@@ -1292,4 +1294,4 @@ def extract_info_txt(txt_dir,cols=None,cols_order=True):
 
     else:
         return np.array([float(j[cols]) for j in a]).astype("float")
-
+"""
