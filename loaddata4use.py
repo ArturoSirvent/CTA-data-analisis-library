@@ -918,11 +918,6 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,
 
 
     if len(main_list_runs)!=len(elementos):
-        #como lista_list_runs es una lista de las runs que vamos a tomar, pues deber haber una para cada elemento
-        print("ERROR WITH THE LENGTHS OF ELEMENTS AND LABELS")
-        return None
-
-    if len(main_list_runs)!=len(elementos):
         #the length of the list with the runs for each element, must be equal to the length of elements we are considering 
         print("ERROR WITH THE LENGTH OF MAIN_LIST AND THE ELEMENTS")
         return None
@@ -951,7 +946,7 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,
             #solo tenemos que conseguir un array con los indices
             if verbose:
                 #print(j,k,list_runs,aux_events.shape,aux_events_energy.shape)
-                print("Element: ",j,", Telescope: ",k,", Runs: ",list_runs," Shape of common events (tels,common events, energies): ",aux_events.shape,aux_events_energy.shape)
+                print("Element: ",j," , Runs: ",list_runs," Shape of common events (common events, energies): ",aux_events.shape,aux_events_energy.shape)
 
             energia=get_txt_info(base_dir_txt,extension=pre_name_folders_txt,cols=2,tel=telescopios[0],run=k,element=j,cols_order=True)
             if len(aux_events_energy[0])!=0:

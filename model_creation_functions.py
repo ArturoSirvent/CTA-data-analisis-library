@@ -219,7 +219,7 @@ def model_multi_tel_energy(len_inputs=4,input_shapes=[(55,93,1)],learning_rate=1
         x=tf.keras.layers.Dense(i,activation="relu")(x)
     end_layer=tf.keras.layers.Dense(1)(x)
     model=tf.keras.Model(inputs=inputs,outputs=end_layer)
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),loss="mse")
+    #model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),loss="mse")
 
     return model
 

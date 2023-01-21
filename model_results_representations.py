@@ -37,7 +37,7 @@ def print_conf_matrix(matrix,elements=None,sin_diag=True,save_dir=None):
     if sin_diag:
         for i in range(len(elements)):
             matrix[i,i]=0
-    plt.figure(figsize=(13,9))
+    fig=plt.figure(figsize=(13,9))
     sns.heatmap(matrix,annot=True,annot_kws={'size':16})
 
     plt.yticks(np.arange(len(elements))+0.25,elements,fontsize=14,rotation=25);
@@ -46,11 +46,12 @@ def print_conf_matrix(matrix,elements=None,sin_diag=True,save_dir=None):
     if save_dir != None:
         plt.tight_layout()
         plt.savefig(save_dir)
+    return fig
 
 
 def comp_and_diplay_conf_matrix(y_test,y_predict,elements=None,sin_diag=True,norm="true",save_dir=None):
-    matrix=confusion_matrix(np.argmax(y_test,axis=-1),np.argmax(y_predict,axis=-1),normalize=norm)
-    print_conf_matrix(matrix,elements=elements,sin_diag=sin_diag,save_dir=save_dir)
+    matrix=confusion_matrix(np.argmax(y_test,axis=-1),np.argmax(y_predict,axis=-1),normalize=norm) #sklearn.metrics.confusion_matrix
+    return print_conf_matrix(matrix,elements=elements,sin_diag=sin_diag,save_dir=save_dir)
 
 
 
