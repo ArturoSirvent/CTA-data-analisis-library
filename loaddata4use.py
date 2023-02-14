@@ -879,6 +879,7 @@ def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,co
         list_return=[]
         for i in tel:
             regex=f"{base_dir}/{extension}{element}/{element}_tel_{i}_run_{str(run).zfill(3)}{ending}"
+            regex=f"{base_dir}/{element}_tel_{i}_run_{str(run).zfill(3)}{ending}"
             aux=glob.glob(regex)
             if aux:
                 list_return_aux=extract_info_txt(aux[0],cols=cols,cols_order=cols_order)
@@ -887,7 +888,8 @@ def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,co
                 print("Error, archivo no encontrado")
                 return None
     else:
-        regex=f"{base_dir}/{extension}{element}/{element}_tel_{tel}_run_{str(run).zfill(3)}{ending}"
+        #regex=f"{base_dir}/{extension}{element}/{element}_tel_{tel}_run_{str(run).zfill(3)}{ending}"
+        regex=f"{base_dir}/{element}_tel_{tel}_run_{str(run).zfill(3)}{ending}"        
         aux=glob.glob(regex)
         if aux:
             list_return=extract_info_txt(aux[0],cols=cols,cols_order=cols_order)
