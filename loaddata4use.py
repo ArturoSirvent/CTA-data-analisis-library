@@ -878,7 +878,7 @@ def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,co
     if (type(tel)==list) or (type(tel)==np.ndarray):
         list_return=[]
         for i in tel:
-            regex=f"{base_dir}/{extension}{element}/{element}_tel_{i}_run_{str(run).zfill(3)}{ending}"
+            #regex=f"{base_dir}/{extension}{element}/{element}_tel_{i}_run_{str(run).zfill(3)}{ending}"
             regex=f"{base_dir}/{element}_tel_{i}_run_{str(run).zfill(3)}{ending}"
             aux=glob.glob(regex)
             if aux:
