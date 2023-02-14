@@ -848,7 +848,6 @@ def get_common_events_energy(npy_dir_base,tels=None,run=None,array_from_txt=None
         if array_from_txt:
             for i in array_from_txt:
                 sets.append(set(i)) 
-
         #devolvemos una lista de los INDICES de los eventos que SON COMUNES y podemos coger
         eventos_comunes=sorted(list(sets[0].intersection(*sets[1:])))
         del sets
@@ -902,7 +901,7 @@ def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,co
 
 
 #MODIFICACION PARA QUE HAYA MAS O MENOS LA MISMA CANTIDAD DE DATOS DE CADA UNO.
-def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,pre_name_folders_npy="npy_",pre_name_folders_txt="extract_",telescopios=None,test_size=0.2,same_quant="same",verbose=True,fill=False):
+def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,pre_name_folders_npy="npy_",pre_name_folders_txt="extract_",telescopios=None,test_size=0.2,same_quant="same",verbose=True,fill=False,lower_energy_bound=0,upper_energy_bound=2000):
     #LOS TELESCOPIOS EN UNA LISTA AUNQUE SEA 1
     #la estructura de datos esperada es una carpeta contenedora de las carpetas con los archivos npy
     #y prename folder es eso que va delante del nombre de la carpeta que tiene el nombre del elemento
@@ -949,8 +948,31 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,
                 print("Element: ",j," , Runs: ",list_runs," Shape of common events (common events, energies): ",aux_events.shape,aux_events_energy.shape)
 
             energia=get_txt_info(base_dir_txt,extension=pre_name_folders_txt,cols=2,tel=telescopios[0],run=k,element=j,cols_order=True)
-            if len(aux_events_energy[0])!=0:
-                energia_label_aux.extend(energia[aux_events_energy[0]])
+            
+
+
+
+            #nada más obtenemos la energía tenemos que hacer el filtrado, sino se nos complica todo mucho
+            #tenemos un array con las energías y podemos sacar un vector booleano para saber cuales sí,y cuales no de los eventos
+            #la energia es una array con los valores e la energia
+            #y luego tenemos aux_events_energy y aux_events, que son los indices de los eventos para cada uno de los telecopios
+
+            #primero nos aseguramos de que son iguales porque sino vamos a estar usando la energia para tomar indices de los datos que no corresponden
+            assert np.all(aux_events==aux_events_energy),"FALLOOOOOOOOOOOOO, los id de eventos no coinciden"
+
+            
+            #ahora hacemos el filtrado para las energias que nos interesan
+            aux_energia_in_events=energia[aux_events_energy[0]]
+            bool_energy=(aux_energia_in_events>lower_energy_bound)&(aux_energia_in_events<upper_energy_bound)
+            aux_events_energy=aux_events_energy[:,bool_energy]
+            aux_events=aux_events_energy.copy()
+            energias_in_bounds=aux_energia_in_events[bool_energy]
+
+            if len(aux_events_energy[0])>0:
+                energia_label_aux.extend(energias_in_bounds)
+            else:
+                print("No habia eventos disponibles")
+
 
             eventos_runs.append(aux_events)
             aux_num_events+=aux_events.shape[1]
