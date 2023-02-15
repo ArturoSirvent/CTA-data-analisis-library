@@ -878,8 +878,8 @@ def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,co
     if (type(tel)==list) or (type(tel)==np.ndarray):
         list_return=[]
         for i in tel:
-            #regex=f"{base_dir}/{extension}{element}/{element}_tel_{i}_run_{str(run).zfill(3)}{ending}"
-            regex=f"{base_dir}/{element}_tel_{i}_run_{str(run).zfill(3)}{ending}"
+            regex=f"{base_dir}/{extension}{element}/{element}_tel_{i}_run_{str(run).zfill(3)}{ending}"
+            #regex=f"{base_dir}/{element}_tel_{i}_run_{str(run).zfill(3)}{ending}"
             aux=glob.glob(regex)
             if aux:
                 list_return_aux=extract_info_txt(aux[0],cols=cols,cols_order=cols_order)
@@ -888,8 +888,8 @@ def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,co
                 print("Error, archivo no encontrado")
                 return None
     else:
-        #regex=f"{base_dir}/{extension}{element}/{element}_tel_{tel}_run_{str(run).zfill(3)}{ending}"
-        regex=f"{base_dir}/{element}_tel_{tel}_run_{str(run).zfill(3)}{ending}"        
+        regex=f"{base_dir}/{extension}{element}/{element}_tel_{tel}_run_{str(run).zfill(3)}{ending}"
+        #regex=f"{base_dir}/{element}_tel_{tel}_run_{str(run).zfill(3)}{ending}"        
         aux=glob.glob(regex)
         if aux:
             list_return=extract_info_txt(aux[0],cols=cols,cols_order=cols_order)
@@ -903,7 +903,7 @@ def get_txt_info(base_dir,extension="extract_",tel=None,run=None,element=None,co
 
 
 #MODIFICACION PARA QUE HAYA MAS O MENOS LA MISMA CANTIDAD DE DATOS DE CADA UNO.
-def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,pre_name_folders_npy="npy_",pre_name_folders_txt="extract_",telescopios=None,test_size=0.2,same_quant="same",verbose=True,fill=False,lower_energy_bound=0,upper_energy_bound=2000):
+def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,pre_name_folders_npy="npy_",pre_name_folders_txt="extract_",telescopios=None,test_size=0.2,same_quant="same",verbose=True,return_shapes=False,fill=False,lower_energy_bound=0,upper_energy_bound=2000):
     #LOS TELESCOPIOS EN UNA LISTA AUNQUE SEA 1
     #la estructura de datos esperada es una carpeta contenedora de las carpetas con los archivos npy
     #y prename folder es eso que va delante del nombre de la carpeta que tiene el nombre del elemento
@@ -937,6 +937,7 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,
         list_runs=main_list_runs[i]
         aux_num_events=0
         energia_label_aux=[]
+        print("Runs: ",list_runs)
         for l,k in enumerate(list_runs):
             #todo esto es para aplicar el get_common events a todas las runs que debemos comprobar
             event_aux=get_txt_info(base_dir_txt,extension=pre_name_folders_txt,cols=0,tel=telescopios,run=k,element=j,cols_order=True)
@@ -947,7 +948,7 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,
             #solo tenemos que conseguir un array con los indices
             if verbose:
                 #print(j,k,list_runs,aux_events.shape,aux_events_energy.shape)
-                print("Element: ",j," , Runs: ",list_runs," Shape of common events (common events, energies): ",aux_events.shape,aux_events_energy.shape)
+                print("Element: ",j," , Run: ",k," Shape of common events (common events, energies): ",aux_events.shape,aux_events_energy.shape)
 
             energia=get_txt_info(base_dir_txt,extension=pre_name_folders_txt,cols=2,tel=telescopios[0],run=k,element=j,cols_order=True)
             
@@ -1041,24 +1042,36 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,
             else:
                 data=np.concatenate((data,data_aux),axis=0)
                 del data_aux
-        #ahora le aumentamos el canal y las labels las volvemos categorical
+        #ahora le aumentamos el canal 
         data=data[...,np.newaxis]
         if l==0:
             energia_label=np.concatenate([h for h in energia_label])
             if verbose:
                 print("Final data shape",data.shape,"Final energies shape: ",energia_label.shape)
                 print("_____________________ \n")
-            x_train,x_test,y_train,y_test =train_test_split(data,energia_label,test_size=test_size,random_state=42)
-            del data
+                        
+            if test_size==0:
+                x_train=data
+                y_train=energia_label
+                y_test=np.array([None])
+                x_test=np.array([None])
+            else:
+                x_train,x_test,y_train,y_test = train_test_split(data,energia_label,test_size=test_size,random_state=42)
+                del data
             y_train_list=y_train
             y_test_list=y_test
             x_train_list.append(x_train)
             x_test_list.append(x_test)
         else:
-            x_train,x_test =train_test_split(data,test_size=test_size,random_state=42)
+            if test_size==0:
+                x_train=data
+                x_test=np.array([None])
+            else:
+                x_train,x_test =train_test_split(data,test_size=test_size,random_state=42)
+                del data
+                
             x_train_list.append(x_train)
             x_test_list.append(x_test)
-            del data
 
         if (x_train.shape[0]!=y_train.shape[0]) or (x_test.shape[0]!=y_test.shape[0]):
             print("Must be some problems with the dimmensions...mmmm sorry")
@@ -1066,10 +1079,17 @@ def load_dataset_energy(base_dir_npy,base_dir_txt,main_list_runs,elementos=None,
         del x_train,x_test
 
     print("SUCCESS")
-    if len(telescopios)==1:
-        return x_train_list[0],x_test_list[0],y_train_list,y_test_list
+
+    if return_shapes:
+        if len(telescopios)==1:
+            return x_train_list[0],x_test_list[0],y_train_list,y_test_list,numero_eventos
+        else:
+            return x_train_list,x_test_list,y_train_list,y_test_list,numero_eventos
     else:
-        return x_train_list,x_test_list,y_train_list,y_test_list
+        if len(telescopios)==1:
+            return x_train_list[0],x_test_list[0],y_train_list,y_test_list
+        else:
+            return x_train_list,x_test_list,y_train_list,y_test_list
 
 
 
