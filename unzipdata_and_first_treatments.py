@@ -105,9 +105,12 @@ def unzip_gunzip(base_dir,final_dir=None,elements=None,folders=True):
 
         for i in elements:
             new_folder=f"{final_dir}/extract_{i}"
+            print(new_folder)
             os.mkdir(new_folder)
-            element_dir=f"{base_dir}/{i}"
+            element_dir=f"{base_dir}/{i}/images_tel"
+            print(element_dir)
             os.chdir(element_dir)
+            print(os.getcwd())
             files_names_dt=glob.glob("*.dt.gz")
             
             #?? .txt files in principle are not in zip format...
@@ -272,7 +275,7 @@ def multiple_dt_2_npy(lista_archivos,npy_dir,limit_size=0.35,save_events_id=Fals
         contador_nombre=0
         dt_list=[]  
         nombre_archivo=re.findall("([a-zA-Z]*_tel_[0-9]*_run_\d+).dt$",files_names[j])[0]
-        aux_df=pd.read_csv(files_names[j],sep='  ',names=["1","2","3","4","5","6"],engine="python")
+        aux_df=pd.read_csv(files_names[j],sep=' +',names=["1","2","3","4","5","6"],engine="python")
         #ahora la procesamos y la guardamos en un npy
         value_auf=aux_df[['1','3','4','5']].copy()
         del aux_df
